@@ -69,7 +69,7 @@ def recommend_companies(company_name, data, combine, transform):
         recommendation_data = pd.DataFrame()
         
         recommendation_data['id'] = uid
-        recommendation_data['domain'] = name
+        recommendation_data['domain'] = domain
         recommendation_data['status'] = status
         recommendation_data['CL_d'] = category            
         recommendation_data['email_d'] =  email

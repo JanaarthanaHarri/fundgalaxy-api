@@ -4,20 +4,20 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 def get_data():
-    org_data = pd.read_csv('datasets/organizations_data.csv')
-    # org_data['name'] = org_data['name'].str.lower()
+    org_data = pd.read_csv('orgs.csv')
+#     org_data['name'] = org_data['name'].str.lower()
     return org_data
 
 def combine_data(data):
-    drop_cols = ['uuid', 'name', 'description', 'domain', 'total_funding',
-       'num_funding_rounds', 'total_funding_currency_code', 'founded_on',
-       'employee_count', 'email', 'phone','address','facebook_url', 'linkedin_url',
-       'twitter_url', 'people', 'founder']
+    drop_cols = ['id', 'domain', 'status', 'email','phone', 'countrycode', 
+        'statecode', 'city', 'address', 'description','employeeCount', 'foundedOn', 
+        'founders', 'homepageUrl', 'linkedin','facebook', 'name', 'numFundingrounds', 
+        'people', 'revenuerange','totalFundingUsd', 'password']
     data_recommend = data.drop(columns=drop_cols)
     data_recommend['combine'] = data_recommend[data_recommend.columns[0:2]].apply(
                                      lambda x: ','.join(x.dropna().astype(str)),axis=1)
         
-    data_recommend = data_recommend.drop(columns=[ 'category', 'category_grp_list'])
+    data_recommend = data_recommend.drop(columns=[ 'categoryList', 'categorygrpList'])
     return data_recommend
 
 def transform_data(data_combine, data_descr):
@@ -33,7 +33,7 @@ def transform_data(data_combine, data_descr):
         return cosine_sim
 
 def recommend_companies(company_id, data, combine, transform):
-        indices = pd.Series(data.index, index = data['uuid'])
+        indices = pd.Series(data.index, index = data['id'])
         index = indices[company_id]
 
         sim_scores = list(enumerate(transform[index]))
@@ -42,59 +42,140 @@ def recommend_companies(company_id, data, combine, transform):
 
         company_indices = [i[0] for i in sim_scores]
 
-        uuid = data['uuid'].iloc[company_indices]
-        name = data['name'].iloc[company_indices]
-        description = data['description'].iloc[company_indices]
+        uid = data['id'].iloc[company_indices]
         domain = data['domain'].iloc[company_indices]
-        total_funding = data['total_funding'].iloc[company_indices]
-        num_funding_rounds = data['num_funding_rounds'].iloc[company_indices]
-        total_funding_currency_code = data['total_funding_currency_code'].iloc[company_indices]
-        founded_on = data['founded_on'].iloc[company_indices]
-        employee_count = data['employee_count'].iloc[company_indices]
+        status = data['status'].iloc[company_indices]
+        category = data['categoryList'].iloc[company_indices]
+        email = data['email'].iloc[company_indices]
         phone = data['phone'].iloc[company_indices]
+        ctrycode = data['countrycode'].iloc[company_indices]
+        statecode = data['statecode'].iloc[company_indices]
+        city = data['city'].iloc[company_indices]
         address = data['address'].iloc[company_indices]
-        facebook_url = data['facebook_url'].iloc[company_indices]
-        linkedin_url = data['linkedin_url'].iloc[company_indices]
-        twitter_url = data['twitter_url'].iloc[company_indices]
+        description = data['description'].iloc[company_indices]
+        employee_count = data['employeeCount'].iloc[company_indices]
+        founded_on = data['foundedOn'].iloc[company_indices]
+        founder = data['founders'].iloc[company_indices]
+        homepage_url = data['homepageUrl'].iloc[company_indices]
+        facebook_url = data['facebook'].iloc[company_indices]
+        linkedin_url = data['linkedin'].iloc[company_indices]
+        name = data['name'].iloc[company_indices]
+        num_funding_rounds = data['numFundingrounds'].iloc[company_indices]
+        password = data['password'].iloc[company_indices]
         people = data['people'].iloc[company_indices]
-        founder = data['founder'].iloc[company_indices]
-        category = data['category'].iloc[company_indices]
+        revenue_range = data['revenuerange'].iloc[company_indices]
+        totalFundingUsd = data['totalFundingUsd'].iloc[company_indices]
+        
+        recommendation_data = pd.DataFrame()
+        
+        recommendation_data['id'] = uid
+        recommendation_data['domain'] = domain
+        recommendation_data['status'] = status
+        recommendation_data['CL_d'] = category            
+        recommendation_data['email_d'] =  email
+        recommendation_data['phone_d'] = phone
+        recommendation_data['ctrycode_d'] = ctrycode
+        recommendation_data['statecode_d'] = statecode
+        recommendation_data['city_d'] = city
+        recommendation_data['address_d'] = address
+        recommendation_data['description'] = description
+        recommendation_data['employeeCount'] = employee_count
+        recommendation_data['foundedOn'] = founded_on
+        recommendation_data['found_d'] = founder
+        recommendation_data['homepageUrl'] = homepage_url
+        recommendation_data['linked_d'] = linkedin_url
+        recommendation_data['face_d'] = facebook_url     
+        recommendation_data['name'] = name 
+        recommendation_data['numFundingRounds'] = num_funding_rounds
+        recommendation_data['password'] = password
+        recommendation_data['people_d'] = people
+        recommendation_data['revenueRange'] = revenue_range
+        recommendation_data['totalFundingUsd'] = totalFundingUsd
+        
+        recommendation_data['CL_d'] = recommendation_data['CL_d'].str.split(',')
+        recommendation_data['found_d'] = recommendation_data['found_d'].str.split(',')
+        recommendation_data['people_d'] = recommendation_data['people_d'].str.split(',')
+        
+        
+        
+        recommendation_data_list = recommendation_data.to_dict('records')
+        
+        # array for category List
+        ctg_list = []
+        get_ctg = list(recommendation_data.CL_d.values)
+        for n in range(len(get_ctg)):
+            di = {}
+            for i in range(len(get_ctg[n])): 
+                di[i] = get_ctg[n][i]
+                ctg_list.append(di)
 
-        recommend_cols = ['ID','Name', 'Description','Domain','Founder','People','Category','Total Funding',
-                           'Num Funding Rounds','Funding Currency Code','Founded On','Employee Count','Phone',
-                           'Address','Facebook','Linkedin','Twitter']
-        recommendation_data = pd.DataFrame(columns=recommend_cols)
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['CategoryList'] = ctg_list[n]
+            
 
-        recommendation_data['ID'] = uuid
-        recommendation_data['Name'] = name
-        recommendation_data['Description'] = description
-        recommendation_data['Domain'] = domain
-        recommendation_data['Founder'] =  founder
-        recommendation_data['People'] = people
-        recommendation_data['Category'] = category
-        recommendation_data['Total Funding'] = total_funding
-        recommendation_data['Num Funding Rounds'] = num_funding_rounds
-        recommendation_data['Funding Currency Code'] = total_funding_currency_code
-        recommendation_data['Founded On'] = founded_on
-        recommendation_data['Employee Count'] = employee_count
-        recommendation_data['Phone'] = phone
-        recommendation_data['Address'] = address
-        recommendation_data['Facebook'] = facebook_url
-        recommendation_data['Linkedin'] = linkedin_url
-        recommendation_data['Twitter'] = twitter_url
+        # array for contact
+        phone_list = list(recommendation_data.phone_d.values)
+        email_list = list(recommendation_data.email_d.values)
+        ctrycode_list = list(recommendation_data.ctrycode_d.values)
+        state_list = list(recommendation_data.statecode_d.values)
+        city_list = list(recommendation_data.city_d.values)
+        address_list = list(recommendation_data.address_d.values)
+        
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['contact'] = {'email':email_list[n],'phone' : phone_list[n],
+                                                'countryCode': ctrycode_list[n], 'stateCode': state_list[n],
+                                                'city': city_list[n], 'address': address_list[n]}
+            
+        # array for founder List
+        founder_list = []
+        get_founder = list(recommendation_data.found_d.values)
+        for n in range(len(get_founder)):
+            di = {}
+            for i in range(len(get_founder[n])): 
+                di[i] = get_founder[n][i]
+                founder_list.append(di)
 
-        return recommendation_data
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['founders'] = founder_list[n]
+            
+        # array for people List
+        people_list = []
+        get_people = list(recommendation_data.people_d.values)
+        for n in range(len(get_people)):
+            di = {}
+            for i in range(len(get_people[n])): 
+                di[i] = get_people[n][i]
+                people_list.append(di)
+
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['people'] = people_list[n]
+            
+        # array for links 
+        facebook_list = list(recommendation_data.face_d.values)
+        linkedin_list = list(recommendation_data.linked_d.values)
+        
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['links'] = {'0':facebook_list[n],'1' : linkedin_list[n]}
+            
+        drop_list = ['CL_d','email_d','phone_d','ctrycode_d','statecode_d','city_d','address_d','found_d','linked_d',
+                    'face_d','people_d']    
+        for comp in range(len(recommendation_data_list)):
+            for n in drop_list:
+                del recommendation_data_list[comp][n]
+            
+                    
+        return recommendation_data_list
 
 def results(company_id):
-        # company_id = company_id.lower()
+        # company_name = company_name.lower()
 
         find_company = get_data()
         combine_result = combine_data(find_company)
         transform_result = transform_data(combine_result,find_company)
 
-        if company_id not in find_company['uuid'].unique():
+        if company_id not in find_company['id'].unique():
                 return 'Company not in Database'
 
         else:
                 recommendations = recommend_companies(company_id, find_company, combine_result, transform_result)
-                return recommendations.to_dict('records')
+                return recommendations
