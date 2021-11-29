@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 def get_data():
-    org_data = pd.read_csv('datasets/orgs_v2.csv')
+    org_data = pd.read_csv('datasets/orgs_v3.csv')
     org_data['name'] = org_data['name'].str.lower()
     return org_data
 
