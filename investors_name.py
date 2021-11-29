@@ -3,7 +3,7 @@ import scipy.sparse as sp
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-def get_data():
+def get_invtypea():
     inv_data = pd.read_csv('datasets/investors_data.csv')
     inv_data['name'] = inv_data['name'].str.lower()
     return inv_data
@@ -43,7 +43,7 @@ def recommend_investors(investor_name, data, combine, transform):
         uuid = data['uuid'].iloc[investor_indices]
         name = data['name'].iloc[investor_indices]
         description = data['description'].iloc[investor_indices]
-        domain = data['domain'].iloc[investor_indices]
+        cb = data['domain'].iloc[investor_indices]
         total_funding = data['tot_funding'].iloc[investor_indices]
         address = data['address'].iloc[investor_indices]
         partners = data['partners'].iloc[investor_indices]
@@ -52,28 +52,53 @@ def recommend_investors(investor_name, data, combine, transform):
         investor_type = data['type'].iloc[investor_indices]
         investment_type = data['investment_type'].iloc[investor_indices]
 
-        recommend_cols = ['ID','Name', 'Description','Domain','Partners','Type','Address','Total Funding',
-                           'Invested Companies','Investment Type','Linkedin']
-        recommendation_data = pd.DataFrame(columns=recommend_cols)
+        recommendation_data = pd.DataFrame()
 
-        recommendation_data['ID'] = uuid
-        recommendation_data['Name'] = name
-        recommendation_data['Description'] = description
-        recommendation_data['Domain'] = domain
-        recommendation_data['Partners'] = partners
-        recommendation_data['Total Funding'] = total_funding
-        recommendation_data['Invested Companies'] = invested_companies
-        recommendation_data['Type'] = investor_type
-        recommendation_data['Address'] = address
-        recommendation_data['Linkedin'] = linkedin_url
-        recommendation_data['Investment Type'] = investment_type
+        recommendation_data['id'] = uuid
+        recommendation_data['name'] = name
+        recommendation_data['description'] = description
+        recommendation_data['cb_d'] = cb
+        recommendation_data['password'] = "fundgalaxy123"
+        recommendation_data['totalFunding'] = total_funding
+        recommendation_data['companiesInvestedIn'] = invested_companies
+        recommendation_data['investerType'] = investor_type
+        recommendation_data['contact'] = address
+        recommendation_data['linked_d'] = linkedin_url
+        recommendation_data['investmentDomains_d'] = investment_type
 
-        return recommendation_data
+        recommendation_data['investmentDomains_d'] = recommendation_data['investmentDomains_d'].str.split(',')
+
+        recommendation_data_list = recommendation_data.to_dict('records')
+        
+        # array for investor type List
+        invtype_list = []
+        get_invtype = list(recommendation_data.investmentDomains_d.values)
+        for n in range(len(get_invtype)):
+            di = {}
+            for i in range(len(get_invtype[n])): 
+                di[i] = get_invtype[n][i]
+                invtype_list.append(di)
+
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['investmentDomains'] = invtype_list[n]
+            
+        cb_list = list(recommendation_data.cb_d.values)
+        linkedin_list = list(recommendation_data.linked_d.values)
+        
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['links'] = {'0':cb_list[n],'1' : linkedin_list[n]}
+
+        drop_list = ['investmentDomains_d','linked_d','cb_d']    
+        for comp in range(len(recommendation_data_list)):
+            for n in drop_list:
+                del recommendation_data_list[comp][n]
+
+        return recommendation_data_list
 
 def results(investor_name):
         investor_name = investor_name.lower()
 
-        find_investor = get_data()
+        find_investor = get_invtypea()
         combine_result = combine_data(find_investor)
         transform_result = transform_data(combine_result,find_investor)
 
@@ -82,4 +107,4 @@ def results(investor_name):
 
         else:
                 recommendations = recommend_investors(investor_name, find_investor, combine_result, transform_result)
-                return recommendations.to_dict('records')
+                return recommendations
