@@ -38,7 +38,7 @@ def recommend_companies(company_name, data, combine, transform):
 
         sim_scores = list(enumerate(transform[index]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_scores = sim_scores[0:5]
+        sim_scores = sim_scores[1:11]
 
         company_indices = [i[0] for i in sim_scores]
 
