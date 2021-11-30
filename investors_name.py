@@ -60,17 +60,18 @@ def recommend_investors(investor_name, data, combine, transform):
         recommendation_data['cb_d'] = cb
         recommendation_data['password'] = "fundgalaxy123"
         recommendation_data['totalFunding'] = total_funding
-        recommendation_data['companiesInvestedIn'] = invested_companies
+        recommendation_data['companiesInvestedIn_d'] = invested_companies
         recommendation_data['investerType'] = investor_type
         recommendation_data['contact'] = address
         recommendation_data['linked_d'] = linkedin_url
         recommendation_data['investmentDomains_d'] = investment_type
 
         recommendation_data['investmentDomains_d'] = recommendation_data['investmentDomains_d'].str.split(',')
+        recommendation_data['companiesInvestedIn_d'] = recommendation_data['companiesInvestedIn_d'].str.split('-')
 
         recommendation_data_list = recommendation_data.to_dict('records')
         
-        # array for investor type List
+        # array for investor domain List
         invtype_list = []
         get_invtype = list(recommendation_data.investmentDomains_d.values)
         for n in range(len(get_invtype)):
@@ -81,14 +82,27 @@ def recommend_investors(investor_name, data, combine, transform):
 
         for n in range(len(recommendation_data_list)):
             recommendation_data_list[n]['investmentDomains'] = invtype_list[n]
+
+        # array for companies invested List
+        invcomp_list = []
+        get_invcomp = list(recommendation_data.companiesInvestedIn_d.values)
+        for n in range(len(get_invcomp)):
+            di = {}
+            for i in range(len(get_invcomp[n])): 
+                di[i] = get_invcomp[n][i]
+                invcomp_list.append(di)
+
+        for n in range(len(recommendation_data_list)):
+            recommendation_data_list[n]['companiesInvestedIn'] = invcomp_list[n]
             
+        # array for links    
         cb_list = list(recommendation_data.cb_d.values)
         linkedin_list = list(recommendation_data.linked_d.values)
         
         for n in range(len(recommendation_data_list)):
             recommendation_data_list[n]['links'] = {'0':cb_list[n],'1' : linkedin_list[n]}
 
-        drop_list = ['investmentDomains_d','linked_d','cb_d']    
+        drop_list = ['investmentDomains_d','linked_d','cb_d','companiesInvestedIn_d']    
         for comp in range(len(recommendation_data_list)):
             for n in drop_list:
                 del recommendation_data_list[comp][n]
