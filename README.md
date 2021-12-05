@@ -1,2 +1,3 @@
 # fundgalaxy-api
-  Get recommendations for investors and companies.
+
+  API created for Fundgalaxy project to get recommendations for investors and companies.
